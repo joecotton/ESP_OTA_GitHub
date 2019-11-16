@@ -19,14 +19,14 @@ ESPOTAGitHub::ESPOTAGitHub(BearSSL::CertStore* certStore, const char* user, cons
 
 /* Private methods */
 
-urlDetails_t ESPOTAGitHub::_urlDetails(String url) {
-      String proto = "";
+urlDetails_t ESPOTAGitHub::_urlDetails(const String& url) {
+      String proto((char *)0);
       if (url.startsWith("http://")) {
             proto = "http://";
-            url.replace("http://", "");
+            // url.replace("http://", "");
       } else {
             proto = "https://";
-            url.replace("https://", "");
+            // url.replace("https://", "");
       }
       int firstSlash = url.indexOf('/');
       String host = url.substring(0, firstSlash);
@@ -42,9 +42,34 @@ urlDetails_t ESPOTAGitHub::_urlDetails(String url) {
       return urlDetail;
 }
 
+void ESPOTAGitHub::_urlDetails(urlDetails_t& ud, const String& url) {
+
+      String proto((char*)0);
+      ud.url = url;
+      if (ud.url.startsWith("http://")) {
+            proto = "http://";
+            ud.url.replace("http://", "");
+      } else {
+            proto = "https://";
+            ud.url.replace("https://", "");
+      }
+      int firstSlash = ud.url.indexOf('/');
+      String host = ud.url.substring(0, firstSlash);
+      String path = ud.url.substring(firstSlash);
+
+      urlDetails_t urlDetail;
+
+      ud.proto = proto;
+      ud.host = host;
+      ud.path = path;
+      // ud.url = proto + host + path;
+
+}
+
 bool ESPOTAGitHub::_resolveRedirects() {
 
-      urlDetails_t splitURL = _urlDetails(_upgradeURL);
+      urlDetails_t splitURL;
+      _urlDetails(splitURL, _upgradeURL);
       String proto = splitURL.proto;
       String host = splitURL.host;
       String path = splitURL.path;
@@ -78,7 +103,8 @@ bool ESPOTAGitHub::_resolveRedirects() {
 
                         if (location.startsWith("http://") || location.startsWith("https://")) {
                               //absolute URL - separate host from path
-                              urlDetails_t url = _urlDetails(location);
+                              urlDetails_t url;
+                              _urlDetails(url, location);
                               proto = url.proto;
                               host = url.host;
                               path = url.path;
@@ -198,7 +224,8 @@ bool ESPOTAGitHub::doUpgrade() {
             return false;
       }
       _resolveRedirects();
-      urlDetails_t splitURL = _urlDetails(_upgradeURL);
+      urlDetails_t splitURL;
+      _urlDetails(splitURL, _upgradeURL);
       BearSSL::WiFiClientSecure client;
       bool mfln = client.probeMaxFragmentLength(splitURL.host, 443, 1024);
       if (mfln) {

@@ -31,7 +31,8 @@ class ESPOTAGitHub {
       String getLastError();
       String getUpgradeURL();
   private:
-      urlDetails_t _urlDetails(String url); // Separates a URL into protocol, host and path into a custom struct
+      urlDetails_t _urlDetails(const String& url); // Separates a URL into protocol, host and path into a custom struct
+      void _urlDetails(urlDetails_t& ud, const String& url);  // Separates a URL into protocol, host and path into a custom struct
       bool _resolveRedirects(); // Follows re-direct sequences until a "real" url is found.
       BearSSL::CertStore* _certStore;
       String _lastError; // Holds the last error generated
